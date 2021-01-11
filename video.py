@@ -1,16 +1,13 @@
-from Action import connectToDrone
 import time
 import cv2
 from threading import Thread, RLock
 import socket
 import numpy
-from tello import Tello
 
 
 class Video():
 
-    def __init__(self, telloInstance):
-        self.tello = telloInstance
+    def __init__(self):
         self.isStreamOn = False
         self.lock = RLock()
 
@@ -23,8 +20,12 @@ class Video():
         self.receive_video_thread = Thread(target=self.get_video)
         self.receive_video_thread.daemon = True
         self.receive_video_thread.start()
+    
+    def setTello(self, telloInstance):
+        self.tello = telloInstance
 
     def streamOn(self):
+        print("Turn On Video Stream")
         if not self.isStreamOn:
             self.tello.send("streamon", 1)
             self.isStreamOn = True
@@ -32,6 +33,7 @@ class Video():
             print('already start streaming')
 
     def streamOff(self):
+        print("Turn Off Video Stream")
         if self.isStreamOn:
             self.receive_video_thread.join()
             self.tello.send("streamoff", 1)
@@ -56,12 +58,12 @@ class Video():
                 return frame
 
 
-# *
-# Test Driver Code
-# *
-if __name__ == "__main__":
-    tello = Tello()
-    video_handler = Video(telloInstance=tello)
-    video_handler.streamOn()
-    video_handler.get_video()
-    video_handler.streamOff()
+# # *
+# # Test Driver Code
+# # *
+# if __name__ == "__main__":
+#     tello = Tello()
+#     video_handler = Video(telloInstance=tello)
+#     video_handler.streamOn()
+#     video_handler.get_video()
+#     video_handler.streamOff()

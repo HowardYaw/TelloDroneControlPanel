@@ -6,6 +6,7 @@ class Action():
     print('Initilize connection to tello drone')
     self.drone = tello.Tello()
     print('Success connect to tello drone')
+    return self.drone
 
   def getCurrentBattery(self):
     print('Obtain Current Battery Percentage')
