@@ -1,38 +1,50 @@
 from tkinter import *
 import tello
 import tkinter.font as tkFont
+from Action import Action
 
 window = Tk()
 window.title("Drone GUI")
 window.geometry("800x600")
 
+actions = Action()
+manualMode = BooleanVar()
+batteryValue = IntVar()
 
 def connection() :
-    import Action
-    Action.connectToDrone()
+    actions.connectToDrone()
     connectionButton.config(text="Connected", state=DISABLED)
     lightButton.config(bg="lime green")
     label.config(text="Connected!")
+    updateBattery()
 
-def mode() :
-    modeButton.config(text="Manual", command=reMode)
+def updateBattery():
+    batteryValue = actions.getCurrentBattery()
+    batteryButton.config(text=str(batteryValue)+"%")
+    window.after(5000, updateBattery)
+
+def onManualMode() :
+    modeButton.config(text="Off Manual", command=offManualMode)
     label.config(text="Manual Mode")
+    manualMode = True
 
-def reMode() :
-    modeButton.config(text="Auto", command=mode)
+def offManualMode() :
+    modeButton.config(text="On Manual", command=onManualMode)
     label.config(text="Auto Mode")
+    manualMode = False
 
-# def forward() :
-#     # tello.billy.send("forward 50", 4)
+def forward() :
+    actions.move("forward") if manualMode else print('Not Manual Mode')
 
-# def back() :
-#     # tello.billy.send("back 50", 4)
+def back() :
+    actions.move("back") if manualMode else print('Not Manual Mode')
 
-# def left() :
-#     # tello.billy.send("left 50", 4)
+def left() :
+    actions.move("left") if manualMode else print('Not Manual Mode')
 
-# def right() :
-#     tello.billy.send("right 50", 4)
+def right() :
+    actions.move("right") if manualMode else print('Not Manual Mode')
+
 
 #Add widget
 frm_main = Frame(window, bg="dark grey")
@@ -48,12 +60,15 @@ batteryButton = Button(frm_right, text="78%", state=DISABLED, height=2, width=2)
 lightButton = Button(frm_right, text="    ", bg="red", state=DISABLED, height=2, width=2)
 
 connectionButton = Button(frm_right, text="Connect", activebackground="grey", padx=5, pady=5, height=2, width=2, command=connection)
-modeButton = Button(frm_right, text="Auto", activebackground="grey", pady=5, height=2, width=2, command=mode)
+modeButton = Button(frm_right, text="On Manual", activebackground="grey", pady=5, height=2, width=2, command=onManualMode)
 
-upButton = Button(frm_right, text="Up", activebackground="grey", padx=5, pady=5, height=3, width=5)
-downButton = Button(frm_right, text="Down", activebackground="grey", padx=5, pady=5, height=3, width=5)
-leftButton = Button(frm_right, text="Left", activebackground="grey", padx=5, pady=5, height=3, width=5)
-rightButton = Button(frm_right, text="Right", activebackground="grey", padx=5, pady=5, height=3, width=5)
+takeOffButton = Button(frm_right, text="Take off", activebackground="grey", padx=5, pady=5, height=3, width=6, command=actions.takeOff)
+landButton = Button(frm_right, text="Land", activebackground="grey", padx=5, pady=5, height=3, width=6, command=actions.landing)
+
+fowardButton = Button(frm_right, text="Forward", activebackground="grey", padx=5, pady=5, height=3, width=5, command=forward)
+backButton = Button(frm_right, text="Backward", activebackground="grey", padx=5, pady=5, height=3, width=5, command=back)
+leftButton = Button(frm_right, text="Left", activebackground="grey", padx=5, pady=5, height=3, width=5, command=left)
+rightButton = Button(frm_right, text="Right", activebackground="grey", padx=5, pady=5, height=3, width=5, command=right)
 
 
 #Display widget
@@ -71,24 +86,27 @@ lightButton.grid(row=1, column=4, padx=5, pady=5, columnspan=1, sticky="ns")
 connectionButton.grid(row=3, column=1, padx=5, pady=5, columnspan=4, sticky="nsew")
 modeButton.grid(row=6, column=1, padx=5, pady=5, columnspan=4, sticky="nsew")
 
-upButton.grid(row=8, column=3, padx=5, pady=5, sticky="nsew")
-downButton.grid(row=9, column=3, padx=5, pady=5, sticky="nsew")
-leftButton.grid(row=9, column=2, padx=5, pady=5, sticky="nsew")
-rightButton.grid(row=9, column=4, padx=5, pady=5, sticky="nsew")
+takeOffButton.grid(row=8, column=3, padx=5, pady=5, sticky="nsew")
+landButton.grid(row=8, column=4, padx=5, pady=5, sticky="nsew")
+
+fowardButton.grid(row=10, column=3, padx=5, pady=5, sticky="nsew")
+backButton.grid(row=11, column=3, padx=5, pady=5, sticky="nsew")
+leftButton.grid(row=11, column=2, padx=5, pady=5, sticky="nsew")
+rightButton.grid(row=11, column=4, padx=5, pady=5, sticky="nsew")
 
 frm_printOut.grid_rowconfigure(0, weight=1)
 frm_printOut.grid_columnconfigure(0, weight=1)
-frm_printOut.grid_rowconfigure(10, weight=1)
-frm_printOut.grid_columnconfigure(10, weight=1)
+frm_printOut.grid_rowconfigure(12, weight=1)
+frm_printOut.grid_columnconfigure(12, weight=1)
 
 frm_left.grid_rowconfigure(0, weight=1)
 frm_left.grid_columnconfigure(0, weight=1)
-frm_left.grid_rowconfigure(10, weight=1)
-frm_left.grid_columnconfigure(10, weight=1)
+frm_left.grid_rowconfigure(12, weight=1)
+frm_left.grid_columnconfigure(12, weight=1)
 
 frm_right.grid_rowconfigure(0, weight=1)
 frm_right.grid_columnconfigure(0, weight=1)
-frm_right.grid_rowconfigure(10, weight=1)
-frm_right.grid_columnconfigure(10, weight=1)
+frm_right.grid_rowconfigure(12, weight=1)
+frm_right.grid_columnconfigure(12, weight=1)
 
 window.mainloop()
