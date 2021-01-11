@@ -1,40 +1,67 @@
+from Action import connectToDrone
 import time
 import cv2
-from threading import Thread
-from djitellopy import Tello
-
-tello = Tello()
-
-tello.connect()
-
-keepRecording = True
-tello.streamon()
-frame_read = tello.get_frame_read()
+from threading import Thread, RLock
+import socket
+import numpy
+from tello import Tello
 
 
-def videoRecorder():
-    # create a VideoWrite object, recoring to ./video.avi
-    height, width, _ = frame_read.frame.shape
-    video = cv2.VideoWriter(
-        'video.avi', cv2.VideoWriter_fourcc(*'XVID'), 30, (width, height))
+class Video():
 
-    while keepRecording:
-        video.write(frame_read.frame)
-        time.sleep(1 / 30)
+    def __init__(self, telloInstance):
+        self.tello = telloInstance
+        self.isStreamOn = False
+        self.lock = RLock()
 
-    video.release()
+        # Setup UDP socket for video
+        self.video_port = 1111
+        self.video_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.video_socket.bind(('', self.video_port))
+
+        # Start thread to receive frame streamed over UDP socket
+        self.receive_video_thread = Thread(target=self.get_video)
+        self.receive_video_thread.daemon = True
+        self.receive_video_thread.start()
+
+    def streamOn(self):
+        if not self.isStreamOn:
+            self.tello.send("streamon", 1)
+            self.isStreamOn = True
+        else:
+            print('already start streaming')
+
+    def streamOff(self):
+        if self.isStreamOn:
+            self.receive_video_thread.join()
+            self.tello.send("streamoff", 1)
+            self.isStreamOn = False
+        else:
+            print('already off streaming')
+
+    # *
+    # Frame returned is readily usable by cv2.imshow()
+    # *
+    def get_video(self):
+        s = ""
+        while True:
+            # with self.lock:
+            data, ip = self.video_socket.recvfrom(2048)
+            s += data
+            if len(s) == (2048*20):
+                frame = numpy.fromstring(s, dtype=numpy.uint8)
+                frame = frame.reshape(480, 640, 3)
+                # cv2.imshow("frame",frame)
+                s = ""
+                return frame
 
 
-# we need to run the recorder in a seperate thread, otherwise blocking options
-#  would prevent frames from getting added to the video
-recorder = Thread(target=videoRecorder)
-recorder.start()
-
-tello.takeoff()
-tello.move_up(100)
-tello.rotate_counter_clockwise(360)
-tello.land()
-
-keepRecording = False
-recorder.join()
-tello.streamoff()
+# *
+# Test Driver Code
+# *
+if __name__ == "__main__":
+    tello = Tello()
+    video_handler = Video(telloInstance=tello)
+    video_handler.streamOn()
+    video_handler.get_video()
+    video_handler.streamOff()
