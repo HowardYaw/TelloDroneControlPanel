@@ -46,9 +46,6 @@ class Video():
         else:
             print('already off streaming')
 
-    # *
-    # Frame returned is readily usable by cv2.imshow()
-    # *
     def get_video(self):
         s = ""
         while True:
@@ -56,11 +53,16 @@ class Video():
             data, ip = self.video_socket.recvfrom(2048)
             s += data
             if len(s) == (2048*20):
-                frame = numpy.fromstring(s, dtype=numpy.uint8)
-                frame = frame.reshape(480, 640, 3)
+                self.frame = numpy.fromstring(s, dtype=numpy.uint8)
+                self.frame = self.frame.reshape(480, 640, 3)
                 # cv2.imshow("frame",frame)
                 s = ""
-                return frame
+
+    # *
+    # Return the current frame
+    # *
+    def get_frame(self):
+        return self.frame
 
 
 # # *
