@@ -4,8 +4,10 @@ class PrePlanRoute:
     def __init__(self, tello):
         # Create Billy
         self.billy = tello
+        self.keepRunning = False
 
     def start(self):
+        self.keepRunning = True
 
         # Travel to/from starting checkpoint 0 from/to the charging base
         frombase = ["forward", 50, "ccw", 150]
@@ -35,30 +37,34 @@ class PrePlanRoute:
 
 
         # Billy's flight path
-        for i in range(len(checkpoint)):
-            if i == len(checkpoint)-1:
-                print("Returning to Checkpoint 0. \n")
+        while(self.keepRunning):
+            for i in range(len(checkpoint)):
+                if i == len(checkpoint)-1:
+                    print("Returning to Checkpoint 0. \n")
 
-            self.billy.send(checkpoint[i][1] + " " + str(checkpoint[i][2]), 4)
-            self.billy.send(checkpoint[i][3] + " " + str(checkpoint[i][4]), 4)
+                self.billy.send(checkpoint[i][1] + " " + str(checkpoint[i][2]), 4)
+                self.billy.send(checkpoint[i][3] + " " + str(checkpoint[i][4]), 4)
 
-            print("Arrived at current location: Checkpoint " + str(checkpoint[i][0]) + "\n")
-            time.sleep(4)
+                print("Arrived at current location: Checkpoint " + str(checkpoint[i][0]) + "\n")
+                time.sleep(4)
 
-        # Reach back at Checkpoint 0
-        print("Complete sweep. Return to charging base.\n")
-        self.billy.send(tobase[0] + " " + str(tobase[1]), 4)
-        self.billy.send(tobase[2] + " " + str(tobase[3]), 4)
-
-
-        # Turn to original direction before land
-        print("Turn to original direction before land.\n")
-        self.billy.send("cw 180", 4)
-
-        # Land
-        self.billy.send("land", 3)
+            # Reach back at Checkpoint 0
+            print("Complete sweep. Return to charging base.\n")
+            self.billy.send(tobase[0] + " " + str(tobase[1]), 4)
+            self.billy.send(tobase[2] + " " + str(tobase[3]), 4)
 
 
-        # Close the socket
-        self.billy.sock.close()
+            # Turn to original direction before land
+            print("Turn to original direction before land.\n")
+            self.billy.send("cw 180", 4)
+
+            # Land
+            self.billy.send("land", 3)
+
+
+            # Close the socket
+            self.billy.sock.close()
+
+    def stop(self):
+        self.keepRunning = False
 

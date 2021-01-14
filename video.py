@@ -11,8 +11,6 @@ class Video():
         self.isStreamOn = False
         self.lock = RLock()
         self.tello = telloInstance
-        if telloInstance is not None:
-            self.videoStreamSetup()
     
     def videoStreamSetup(self):
         # Setup UDP socket for video
@@ -26,7 +24,6 @@ class Video():
 
     def setTello(self, telloInstance):
         self.tello = telloInstance
-        self.videoStreamSetup()
 
     def streamOn(self):
         if self.tello is None: 
@@ -36,6 +33,7 @@ class Video():
         if not self.isStreamOn:
             self.tello.send("streamon", 1)
             self.isStreamOn = True
+            self.videoStreamSetup()
         else:
             print('already start streaming')
         return True
@@ -43,7 +41,7 @@ class Video():
     def streamOff(self):
         print("Turn Off Video Stream")
         if self.isStreamOn:
-            self.receive_video_thread.join()
+            # self.receive_video_thread.join()
             self.tello.send("streamoff", 1)
             self.isStreamOn = False
         else:
@@ -51,7 +49,7 @@ class Video():
 
     def get_video(self):
         s = ""
-        while True:
+        while self.isStreamOn:
             print('Getting updated view')
             # with self.lock:
             data, ip = self.video_socket.recvfrom(2048)

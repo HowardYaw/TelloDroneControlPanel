@@ -23,7 +23,7 @@ def connection() :
     lightButton.config(bg="lime green")
     label.config(text="Connected!")
     battery_thread.start()
-    video_handler = Video(drone)
+    video_handler.setTello(drone)
 
 def updateBattery():
     while True:
@@ -41,7 +41,9 @@ def autoMode() :
 def manualControlMode() :
     modeButton.config(text="On Auto", command=autoMode)
     label.config(text="Manual Mode")
+    actions.stopPrePlanRoute()
     manualMode = False
+    pre_plan_route_process.join()
 
 def onVideoStream() :
     videoStreaming = video_handler.streamOn()
