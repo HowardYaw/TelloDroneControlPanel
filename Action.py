@@ -20,21 +20,21 @@ class Action():
 
   # Manual Control
   def takeOff(self):
-    self.drone.send("takeoff", 7)
+    self.drone.send("takeoff", 3)
     print('Drone took off')
 
   def landing(self):
-    self.drone.send("land", 7)
+    self.drone.send("land", 3)
     print('Drone landed')
 
   # Direction=[up,down,left,right,forward,back]
   def move(self, direction, distance=50):
     moveCommand = direction + " " + str(distance)
     print('Drone moving {} cm'.format(moveCommand))
-    self.drone.send(moveCommand, 5)
+    self.drone.send(moveCommand, 3)
 
   # Direction=[cw(clockwise),ccw(counter clockwise)]
   def rotate(self, direction, angle=90):
     rotateCommand = direction + " " + str(angle)
     print('Drone rotate {}  degrees'.format(rotateCommand))
-    self.drone.send(rotateCommand, 5)
+    self.drone.send(rotateCommand, 3)

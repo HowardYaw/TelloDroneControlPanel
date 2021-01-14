@@ -7,23 +7,26 @@ import numpy
 
 class Video():
 
-    def __init__(self):
+    def __init__(self, telloInstance=None):
         self.isStreamOn = False
         self.lock = RLock()
-        self.tello = None
-
+        self.tello = telloInstance
+        if telloInstance is not None:
+            self.videoStreamSetup()
+    
+    def videoStreamSetup(self):
         # Setup UDP socket for video
         self.video_port = 1111
         self.video_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.video_socket.bind(('', self.video_port))
 
         # Start thread to receive frame streamed over UDP socket
-        self.receive_video_thread = Thread(target=self.get_video)
-        self.receive_video_thread.daemon = True
+        self.receive_video_thread = Thread(target=self.get_video, daemon=True)
         self.receive_video_thread.start()
-    
+
     def setTello(self, telloInstance):
         self.tello = telloInstance
+        self.videoStreamSetup()
 
     def streamOn(self):
         if self.tello is None: 
@@ -49,6 +52,7 @@ class Video():
     def get_video(self):
         s = ""
         while True:
+            print('Getting updated view')
             # with self.lock:
             data, ip = self.video_socket.recvfrom(2048)
             s += data

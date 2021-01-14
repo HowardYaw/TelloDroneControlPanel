@@ -3,6 +3,8 @@ import tello
 import tkinter.font as tkFont
 from Action import Action
 from video import Video
+from threading import Thread
+import time
 
 window = Tk()
 window.title("Drone Control Panel")
@@ -20,29 +22,32 @@ def connection() :
     connectionButton.config(text="Connected", state=DISABLED)
     lightButton.config(bg="lime green")
     label.config(text="Connected!")
-    updateBattery()
-    video_handler.setTello(drone)
+    battery_thread.start()
+    video_handler = Video(drone)
 
 def updateBattery():
-    batteryValue = actions.getCurrentBattery()
-    if (batteryValue != None):
-        batteryButton.config(text=str(batteryValue)+"%")
-    window.after(5000, updateBattery)
+    while True:
+        batteryValue = actions.getCurrentBattery()
+        if (batteryValue != None):
+            batteryButton.config(text=str(batteryValue)+"%")
+        time.sleep(60)
 
-def onManualMode() :
-    modeButton.config(text="Off Manual", command=offManualMode)
-    label.config(text="Manual Mode")
-    manualMode = True
-
-def offManualMode() :
-    modeButton.config(text="On Manual", command=onManualMode)
+def autoMode() :
+    modeButton.config(text="On Manual", command=manualControlMode)
     label.config(text="Auto Mode")
+    manualMode = True
+    pre_plan_route_process.start()
+
+def manualControlMode() :
+    modeButton.config(text="On Auto", command=autoMode)
+    label.config(text="Manual Mode")
     manualMode = False
 
 def onVideoStream() :
     videoStreaming = video_handler.streamOn()
     videoStreamButton.config(text="Video Off", command=offVideoStream)
-    updateFrameVideoImage()
+    # video_frame_thread = Thread(target=updateFrameVideoImage, daemon=True)
+    # video_frame_thread.start()
 
 def offVideoStream() :
     video_handler.streamOff()
@@ -50,9 +55,8 @@ def offVideoStream() :
     videoStreaming = False
 
 def updateFrameVideoImage():
-    frm_cam.config(image=video_handler.get_video())
-    if (videoStreaming):
-        window.after(20, updateFrameVideoImage)
+    while videoStreaming:
+        frm_cam.config(image=video_handler.get_frame())
 
 def forward() :
     actions.move("forward") if manualMode else print('Not Manual Mode')
@@ -81,7 +85,7 @@ batteryButton = Button(frm_right, text="0%", state=DISABLED, height=2, width=2)
 lightButton = Button(frm_right, text="    ", bg="red", state=DISABLED, height=2, width=2)
 
 connectionButton = Button(frm_right, text="Connect", activebackground="grey", padx=5, pady=5, height=2, width=2, command=connection)
-modeButton = Button(frm_right, text="On Manual", activebackground="grey", pady=5, height=2, width=2, command=onManualMode)
+modeButton = Button(frm_right, text="On Manual", activebackground="grey", pady=5, height=2, width=2, command=manualControlMode)
 
 videoStreamButton = Button(frm_right, text="Video On", activebackground="grey", padx=5, pady=5, height=3, width=6, command=onVideoStream)
 takeOffButton = Button(frm_right, text="Take off", activebackground="grey", padx=5, pady=5, height=3, width=6, command=actions.takeOff)
@@ -132,4 +136,6 @@ frm_right.grid_columnconfigure(0, weight=1)
 frm_right.grid_rowconfigure(12, weight=1)
 frm_right.grid_columnconfigure(12, weight=1)
 
+battery_thread = Thread(target=updateBattery, daemon=True)
+pre_plan_route_process = Thread(target=actions.startPrePlanRoute, daemon=True)
 window.mainloop()
