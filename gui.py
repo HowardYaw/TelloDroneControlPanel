@@ -5,14 +5,15 @@ from Action import Action
 from video import Video
 
 window = Tk()
-window.title("Drone GUI")
+window.title("Drone Control Panel")
 window.geometry("800x600")
 
 actions = Action()
+video_handler = Video()
+
 manualMode = BooleanVar()
 videoStreaming = BooleanVar()
 batteryValue = IntVar()
-video_handler = Video()
 
 def connection() :
     drone = actions.connectToDrone()
@@ -39,9 +40,8 @@ def offManualMode() :
     manualMode = False
 
 def onVideoStream() :
-    video_handler.streamOn()
+    videoStreaming = video_handler.streamOn()
     videoStreamButton.config(text="Video Off", command=offVideoStream)
-    videoStreaming = True
     updateFrameVideoImage()
 
 def offVideoStream() :

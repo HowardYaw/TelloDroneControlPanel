@@ -10,6 +10,7 @@ class Video():
     def __init__(self):
         self.isStreamOn = False
         self.lock = RLock()
+        self.tello = None
 
         # Setup UDP socket for video
         self.video_port = 1111
@@ -25,12 +26,16 @@ class Video():
         self.tello = telloInstance
 
     def streamOn(self):
+        if self.tello is None: 
+            print('Not Connected to Drone')
+            return False
         print("Turn On Video Stream")
         if not self.isStreamOn:
             self.tello.send("streamon", 1)
             self.isStreamOn = True
         else:
             print('already start streaming')
+        return True
 
     def streamOff(self):
         print("Turn Off Video Stream")
