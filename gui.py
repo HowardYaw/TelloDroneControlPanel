@@ -23,6 +23,7 @@ def connection() :
     lightButton.config(bg="lime green")
     label.config(text="Connected!")
     battery_thread.start()
+    manualMode.set(True)
     video_handler.setTello(drone)
 
 def updateBattery():
@@ -35,15 +36,15 @@ def updateBattery():
 def autoMode() :
     modeButton.config(text="On Manual", command=manualControlMode)
     label.config(text="Auto Mode")
-    manualMode = True
+    manualMode.set(False)
+    pre_plan_route_process = Thread(target=actions.startPrePlanRoute, daemon=True)
     pre_plan_route_process.start()
 
 def manualControlMode() :
     modeButton.config(text="On Auto", command=autoMode)
     label.config(text="Manual Mode")
     actions.stopPrePlanRoute()
-    manualMode = False
-    pre_plan_route_process.join()
+    manualMode.set(True)
 
 def onVideoStream() :
     videoStreaming = video_handler.streamOn()
@@ -61,16 +62,16 @@ def updateFrameVideoImage():
         frm_cam.config(image=video_handler.get_frame())
 
 def forward() :
-    actions.move("forward") if manualMode else print('Not Manual Mode')
+    actions.move("forward") if manualMode.get() else print('Not Manual Mode')
 
 def back() :
-    actions.move("back") if manualMode else print('Not Manual Mode')
+    actions.move("back") if manualMode.get() else print('Not Manual Mode')
 
 def left() :
-    actions.move("left") if manualMode else print('Not Manual Mode')
+    actions.move("left") if manualMode.get() else print('Not Manual Mode')
 
 def right() :
-    actions.move("right") if manualMode else print('Not Manual Mode')
+    actions.move("right") if manualMode.get() else print('Not Manual Mode')
 
 
 #Add widget
@@ -87,7 +88,7 @@ batteryButton = Button(frm_right, text="0%", state=DISABLED, height=2, width=2)
 lightButton = Button(frm_right, text="    ", bg="red", state=DISABLED, height=2, width=2)
 
 connectionButton = Button(frm_right, text="Connect", activebackground="grey", padx=5, pady=5, height=2, width=2, command=connection)
-modeButton = Button(frm_right, text="On Manual", activebackground="grey", pady=5, height=2, width=2, command=manualControlMode)
+modeButton = Button(frm_right, text="On Auto", activebackground="grey", pady=5, height=2, width=2, command=autoMode)
 
 videoStreamButton = Button(frm_right, text="Video On", activebackground="grey", padx=5, pady=5, height=3, width=6, command=onVideoStream)
 takeOffButton = Button(frm_right, text="Take off", activebackground="grey", padx=5, pady=5, height=3, width=6, command=actions.takeOff)

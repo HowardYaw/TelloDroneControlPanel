@@ -17,7 +17,6 @@ class Action():
     print('Start Pre Plan Route')
     self.sweepProcess = Perimeter_Sweep.PrePlanRoute(self.drone)
     self.sweepProcess.start()
-    print('End Pre Plan Route')
 
   def stopPrePlanRoute(self):
     print('Stop Pre Plan Route')
